@@ -1,0 +1,26 @@
+#!/bin/bash
+
+set -e
+
+if [ $# -eq 0 ]
+then
+    srcs="."
+else
+    srcs="$@"
+fi
+
+function ignore_comments() {
+    cpp | grep -Evx '//.+'
+}
+
+function ignore_directives() {
+    cpp | grep -Evx '#.+'
+}
+
+# Ignore using and namespace statements because names are based on DNS names not domain terminology
+function ignore_using_names() {
+    grep -Evx '[[:space:]]*(using|namespace)[[:space:]].+'
+}
+
+# -exec cat works with paths that contain spaces, while pipe through xargs cat does not
+find $srcs -name '*.cs' -exec cat {} \; | ignore_using_names | ignore_comments | ignore_directives
